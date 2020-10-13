@@ -8,10 +8,12 @@ class Net(torch.nn.Module):
     This gives us full control over the construction and clarifies our intentions.
     """
     
-    def __init__(self, layers):
+    def __init__(self, layers, dropout=False, p=0.2):
         """
         Constructor of neural network
         :param layers: list of layer widths. Note that len(layers) = network depth + 1 since we incl. the input layer.
+        param dropout: decide if dropout module should be added after every activation function. (default: False)
+        param p: probability of zeroing out an input when using dropout. (default=0.2)
         """
         super().__init__()
 
@@ -35,12 +37,15 @@ class Net(torch.nn.Module):
             
             # Add to list
             linear_layers.append(layer)
-        
+
         # Modules/layers must be registered to enable saving of model
         self.linear_layers = torch.nn.ModuleList(linear_layers)  
 
         # Non-linearity (e.g. ReLU, ELU, or SELU)
         self.act = torch.nn.ReLU(inplace=False)
+
+        # Dropout
+        self.dropout_layer = torch.nn.Dropout(inplace=False, p=p) if dropout else None
 
     def forward(self, input):
         """
@@ -52,6 +57,8 @@ class Net(torch.nn.Module):
         for l in self.linear_layers[:-1]:
             x = l(x)
             x = self.act(x)
+            if self.dropout_layer is not None:
+                x = self.dropout_layer(x)
 
         output_layer = self.linear_layers[-1]
         return output_layer(x)

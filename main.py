@@ -96,7 +96,7 @@ val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=len(val_set), s
 
 
 layers = [len(INPUT_COLS), 50, 50, len(OUTPUT_COLS)]
-net = Net(layers)
+net = Net(layers, dropout=True, p=0.05)
 
 print(f'Layers: {layers}')
 print(f'Number of model parameters: {net.get_num_parameters()}')
@@ -112,7 +112,6 @@ lr = 0.001
 l2_reg = 0.001  # 10
 
 log_dir = 'logs'
-log_iter = 100
 writer = SummaryWriter(log_dir)
 net = train(
     net=net, 
@@ -121,8 +120,6 @@ net = train(
     n_epochs=n_epochs, 
     lr=lr, 
     l2_reg=l2_reg,
-    patience=15,
-    writer=writer,
 )
 
 
@@ -155,7 +152,7 @@ print(f'MAPE: {mape_val.item()} %')
 
 # # Evaluate the model on test data
 
-
+net.eval()
 # Get input and output as torch tensors
 x_test = torch.from_numpy(test_set[INPUT_COLS].values).to(torch.float)
 y_test = torch.from_numpy(test_set[OUTPUT_COLS].values).to(torch.float)

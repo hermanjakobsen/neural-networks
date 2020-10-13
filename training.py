@@ -60,8 +60,8 @@ def train(
         n_epochs: int = 100,
         lr: float = 0.001,
         l2_reg: float = 0,
+        early_stopping = False,
         patience: int = 15,
-        log_iter: int = 100,
         writer: SummaryWriter = None,
 ) -> torch.nn.Module:
     """
@@ -73,7 +73,8 @@ def train(
     :param n_epochs: number of epochs to train (default: 100)
     :param lr: learning rate (default: 0.001)
     :param l2_reg: L2 regularization factor (default: 0)
-    :param patience: early stopping. How long to wait after last time validation loss improved (default: 15)
+    :param early_stopping: whether to use early stopping or not (default: False)
+    :param patience: how long to wait after last time validation loss improved when using early stopping (default: 15)
     :param log_iter: how often the logger should write (default: 100)
     :param writer: logger (default: None)
     :return: torch.nn.Module: trained model.
@@ -83,8 +84,9 @@ def train(
     criterion = torch.nn.MSELoss(reduction='mean')
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
-    early_stopping = EarlyStopping(patience=patience)
+    early_stopping_controller = EarlyStopping(patience=patience) if early_stopping else None
 
+    net.train()
     # Train Network
     for epoch in range(n_epochs):
         for inputs, labels in train_loader:
@@ -122,8 +124,9 @@ def train(
             writer.add_scalar('train_loss', batch_mse, epoch)
             writer.add_scalar('val_loss', mse_val, epoch)
 
-        early_stopping(mse_val, net)
-        if early_stopping.early_stop:
-            break
-      
+        if early_stopping_controller is not None:
+            early_stopping_controller(mse_val, net)
+            if early_stopping_controller.early_stop:
+                break
+        
     return net
