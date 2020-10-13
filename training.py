@@ -83,13 +83,11 @@ def train(
     criterion = torch.nn.MSELoss(reduction='mean')
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
-    global_step = 0
-    early_stopping = EarlyStopping(patience=14)
+    early_stopping = EarlyStopping(patience=patience)
 
     # Train Network
     for epoch in range(n_epochs):
         for inputs, labels in train_loader:
-            global_step += 1
 
             # Zero the parameter gradients (from last iteration)
             optimizer.zero_grad()
@@ -111,10 +109,6 @@ def train(
             
             # Update parameters using gradient
             optimizer.step()
-
-            if global_step % log_iter == 0 and writer is not None:
-                writer.add_scalar('train_loss', batch_mse, global_step)
-
         
         # Evaluate model on validation data
         mse_val = 0
@@ -125,7 +119,8 @@ def train(
         print(f'Epoch: {epoch + 1}: Val MSE: {mse_val}')
 
         if writer is not None:
-            writer.add_scalar('val_loss', mse_val, global_step)
+            writer.add_scalar('train_loss', batch_mse, epoch)
+            writer.add_scalar('val_loss', mse_val, epoch)
 
         early_stopping(mse_val, net)
         if early_stopping.early_stop:
