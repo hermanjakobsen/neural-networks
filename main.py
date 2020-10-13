@@ -107,7 +107,7 @@ print(f'Number of model parameters: {net.get_num_parameters()}')
 # 
 # Almost there. We only need to set some important hyper-parameters before we start the training. The number of epochs to train, the learning rate, and the L2 regularization factor.
 
-n_epochs = 100
+n_epochs = 300
 lr = 0.001
 l2_reg = 0.001  # 10
 
