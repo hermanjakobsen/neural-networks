@@ -5,6 +5,7 @@ from torch.utils.tensorboard import SummaryWriter
 import matplotlib.pyplot as plt
 import pandas as pd
 from math import sqrt
+import unittest
 
 from model import Net
 from training import train
@@ -51,9 +52,8 @@ val_set = train_val_set.sample(frac=0.1, replace=False, random_state=random_seed
 train_set = train_val_set.copy().drop(val_set.index)
 
 # Check that the numbers add up
-n_points = len(train_set) + len(val_set) + len(test_set)
-print(f'{len(df)} = {len(train_set)} + {len(val_set)} + {len(test_set)} = {n_points}')
-
+tester = unittest.TestCase()
+tester.assertEqual(len(df), len(train_set) + len(val_set) + len(test_set))
 
 # # Plot the train, validation and test set
 
@@ -113,8 +113,17 @@ l2_reg = 0.001  # 10
 
 log_dir = 'logs'
 log_iter = 100
-writer = None # SummaryWriter(log_dir)
-net = train(net, train_loader, val_loader, n_epochs, lr, l2_reg, log_iter, writer)
+writer = SummaryWriter(log_dir)
+net = train(
+    net=net, 
+    train_loader=train_loader, 
+    val_loader=val_loader, 
+    n_epochs=n_epochs, 
+    lr=lr, 
+    l2_reg=l2_reg,
+    patience=15,
+    writer=writer,
+)
 
 
 # # Evaluate the model on validation data
