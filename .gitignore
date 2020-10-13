@@ -4,6 +4,7 @@ __pycache__/
 
 # Non-distributable data
 data/
+logs/
 
 # Environments
 venv/

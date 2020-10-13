@@ -1,7 +1,9 @@
-import matplotlib.pyplot as plt
-import pandas as pd
 import torch
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter 
+
+import matplotlib.pyplot as plt
+import pandas as pd
 from math import sqrt
 
 from model import Net
@@ -105,12 +107,14 @@ print(f'Number of model parameters: {net.get_num_parameters()}')
 # 
 # Almost there. We only need to set some important hyper-parameters before we start the training. The number of epochs to train, the learning rate, and the L2 regularization factor.
 
-
-
 n_epochs = 100
 lr = 0.001
 l2_reg = 0.001  # 10
-net = train(net, train_loader, val_loader, n_epochs, lr, l2_reg)
+
+log_dir = 'logs'
+log_iter = 100
+writer = None # SummaryWriter(log_dir)
+net = train(net, train_loader, val_loader, n_epochs, lr, l2_reg, log_iter, writer)
 
 
 # # Evaluate the model on validation data
@@ -167,4 +171,4 @@ plt.figure(figsize=(16, 9))
 plt.plot(y_test.numpy(), label='Missing QTOT')
 plt.plot(pred_test.detach().numpy(), label='Estimated QTOT')
 plt.legend()
-plt.show()
+#plt.show()
