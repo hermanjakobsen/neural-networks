@@ -113,6 +113,7 @@ def train(
             optimizer.step()
         
         # Evaluate model on validation data
+        net.eval()
         mse_val = 0
         for inputs, labels in val_loader:
             mse_val += torch.sum(torch.pow(labels - net(inputs), 2)).item()
