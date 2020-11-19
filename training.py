@@ -86,7 +86,6 @@ def train(
 
     early_stopping_controller = EarlyStopping(patience=patience) if early_stopping else None
 
-    net.train()
     # Train Network
     for epoch in range(n_epochs):
         for inputs, labels in train_loader:
@@ -113,7 +112,6 @@ def train(
             optimizer.step()
         
         # Evaluate model on validation data
-        net.eval()
         mse_val = 0
         for inputs, labels in val_loader:
             mse_val += torch.sum(torch.pow(labels - net(inputs), 2)).item()

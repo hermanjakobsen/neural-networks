@@ -94,25 +94,31 @@ val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=len(val_set), s
 # 
 # Now, what should the network size be? How much data do we have? How nonlinear is the underlying function we are trying to model? Two to hidden layers with 50 units may be sufficient? Let's try that.
 
+# User specifications
+dropout = False             # Whether to implement dropout layers in the model
+early_stopping = True      # Whether to implement early_stopping in training algorithm
+should_log = False          # Wheter data from training should be logged
+log_dir = 'exam_logs'       # Directory to store logged data
 
-layers = [len(INPUT_COLS), 50, 50, len(OUTPUT_COLS)]
-net = Net(layers, dropout=True, p=0.05)
+# Hyper-parameters
+n_epochs = 100
+lr = 0.001
+l2_reg = 0.001  # 10
+p = 0.5         # Dropout probability
+patience = 15   # How many epochs to wait after last time validation loss improved
+
+
+layers = [len(INPUT_COLS), 2*50, 2*50, 2*50, len(OUTPUT_COLS)]
+net = Net(layers, dropout=dropout, p=p)
 
 print(f'Layers: {layers}')
 print(f'Number of model parameters: {net.get_num_parameters()}')
-# print(6*50 + 50 + 50*50 + 50 + 50 * 1 + 1)
-
 
 # # Train the model
-# 
-# Almost there. We only need to set some important hyper-parameters before we start the training. The number of epochs to train, the learning rate, and the L2 regularization factor.
 
-n_epochs = 300
-lr = 0.001
-l2_reg = 0.001  # 10
-
-log_dir = 'logs'
-writer = SummaryWriter(log_dir)
+writer = SummaryWriter(log_dir) if should_log else None
+net
+net.train()
 net = train(
     net=net, 
     train_loader=train_loader, 
@@ -120,12 +126,15 @@ net = train(
     n_epochs=n_epochs, 
     lr=lr, 
     l2_reg=l2_reg,
+    early_stopping=early_stopping,
+    patience=patience,
+    writer=writer
 )
 
 
 # # Evaluate the model on validation data
 
-
+net.eval()
 # Predict on validation data
 pred_val = net(x_val)
 
@@ -152,7 +161,6 @@ print(f'MAPE: {mape_val.item()} %')
 
 # # Evaluate the model on test data
 
-net.eval()
 # Get input and output as torch tensors
 x_test = torch.from_numpy(test_set[INPUT_COLS].values).to(torch.float)
 y_test = torch.from_numpy(test_set[OUTPUT_COLS].values).to(torch.float)
@@ -177,4 +185,4 @@ plt.figure(figsize=(16, 9))
 plt.plot(y_test.numpy(), label='Missing QTOT')
 plt.plot(pred_test.detach().numpy(), label='Estimated QTOT')
 plt.legend()
-#plt.show()
+plt.show()
